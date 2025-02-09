@@ -2,6 +2,9 @@ This is the repository for the nextflow pipeline to preprocess GridION fastq fil
 
 The pipeline is will take an in-house parquet file with metadata (sample, replicate, barcode, and more) and together with a experiement project directory a compatible samplesheet.csv will be generated.
 
+
+![metromap](nanoseq_pre_v2.png)
+
 Expected input prarams:
 
 *`parquetpath` - path tp parquet file of metadata
