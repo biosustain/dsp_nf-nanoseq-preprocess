@@ -36,14 +36,20 @@ process barcodeNumber{
 // barcode folder not relevant at this moment
 // file name should be broken down to replace barcode numbers, and also to iterate through fastqfiles.
 
-//inputPath can be used more than once?
+// define output tuple to get relevant info for remaining part of pipeline
 process fileDir{
         // should be easy bash code, more simple container can be used
         container 'jbjespersen/parquet:test'
         input:
-                val inputPath
+                tuple val(sample), val(inputPath)
+                
         output:
-                path "string.txt"
+                // path "string.txt"
+                // tuple val(sample), path("${variable1}/${variable2}_barcode${formattedBarcode}_${variable3}_merged.fastq.gz")
+                // tuple val(sample), val(xyz), path("string.txt")
+                tuple val(sample),  env(formattedBarcode), env(barcodeFolder), env(mergedFile)
+
+
         script:
         def path = inputPath
         def regex1 = /^(.+?)\/fastq_pass/
@@ -54,34 +60,26 @@ process fileDir{
         def variable2 = (path =~ regex2)[0][1]
         def variable3 = (path =~ regex3)[0][1]
 
-        """
-                echo "Input dir" >> string.txt
-                echo "${variable1}/fastq_pass/barcodeXX/" >>string.txt
-                echo "Input file" >> string.txt
-                echo "${variable1}/fastq_pass/barcodeXX/${variable2}_barcodeXX_${variable3}_N.fastq.gz" >>string.txt
-                echo "Output file" >> string.txt
-                echo "${variable1}/${variable2}_barcodeXX_${variable3}_merged.fastq.gz" >>string.txt
-        """
-}
-
-process sampleBarcode{
-        // should be easy bash code, more simple container can be used
-        container 'jbjespersen/parquet:test'
-        input:
-                val sample
-        output:
-                path "formattedBarcode.txt"
-        script:
-
         def formattedBarcode = String.format("%02d", sample.sample_barcode as Integer)
 
-        """
-                echo "${formattedBarcode}" > formattedBarcode.txt
-        """
+        def mergedFile = "${variable2}_barcode${formattedBarcode}_${variable3}_merged.fastq.gz"
+        def barcodeFolder = "${variable1}/fastq_pass/barcode${formattedBarcode}/*"
+
+
+                """
+                formattedBarcode=${formattedBarcode}
+                barcodeFolder=${variable1}/fastq_pass/barcode${formattedBarcode}/*
+                echo "Input dir" >> string.txt
+                echo "${variable1}/fastq_pass/barcode${formattedBarcode}/" >>string.txt
+                echo "Input file" >> string.txt
+                echo "${variable1}/fastq_pass/barcode${formattedBarcode}/${variable2}_barcode${formattedBarcode}_${variable3}_N.fastq.gz" >>string.txt
+                echo "Output file" >> string.txt
+                echo "${variable1}/${variable2}_barcode${formattedBarcode}_${variable3}_merged.fastq.gz" >>string.txt
+                mergedFile="${variable2}_barcode${formattedBarcode}_${variable3}_merged.fastq.gz"
+                echo ${mergedFile}
+                """
+
 }
-
-
-/// need to emit? and collectTuple? 
 
 // variables should be passed from this process to the workflow where the glob can be used to collect 
 // all the files in each barcode directory
@@ -91,16 +89,16 @@ process mergeFiles{
         // here we use cat, ideally the input files are sorted based on numeric part in filename.
         container 'jbjespersen/parquet:test'
         input:
-                val
+                tuple val(sample), val(formattedBarcode),path("${barcodeFolder}"), val(mergedFile)
         output:
-                val
+                path "${mergedFile}"
         script:
 
         """
-
+        echo "sample: ${sample.group} ${sample.replicate} ${formattedBarcode} ${sample.nucleic_acid_type}"
+        cat ${barcodeFolder}/* >> ${mergedFile}
         """
 }
-
 
 
 workflow{
@@ -108,15 +106,42 @@ workflow{
         getParquet(parquetFile)
         barcodeNumber(getParquet.out)
 
+
+
+        def path = params.fastqsplit
+
         // here we map the content of sample sheet:
-        samples = barcodeNumber.out
+        def samples = barcodeNumber.out
         .splitCsv(header: true)
-        
-        // sample.sample_barcode.format("%02d", sample.sample_barcode as Integer)
-        def string = Channel.of(params.fastqsplit)
-        fileDir(string)
-        //sampleBarcode(samples)
-        
+
+        def pairedChannel = samples.map { sampleRow -> [sampleRow, path] }
+
+        // pairedChannel.view { println it }
+
+        fileDir(pairedChannel)
+        fileDir.out.view { println it }
+
+        fastqs = fileDir.out.map{
+                // row -> row.sample.group, row.sample.replicate, row.formattedBarcode
+        }
+        fastqs.view { }
+
+        // mergeFiles(fastqs)
+
+        // fastqs = sources.map { row -> row, 
+        // // file("az://nextflowstorage/P29_41c4786a45264966bed24c7bd386873a/DNAseq/gridion/D29_3387863281cf4b70b45dcb5d91af68c8/DNFLRS7/DNFLRS7/20230425_1450_X2_FAP81332_d108c404/fastq_pass/barcode${row.sample_barcode}/FAP81332_pass_barcode${row.sample_barcode}_d108c404_99ac3298_*.fastq.gz" ,
+        // file("/home/azureuser/blob/raw/P29_6f16f7434db544739603b3f030486642/DNAseq/gridion/D29_3387863281cf4b70b45dcb5d91af68c8/DNFLRS7/DNFLRS7/20230425_1450_X2_FAP81332_d108c404/fastq_pass/barcode${row.sample_barcode}/FAP81332_pass_barcode${row.sample_barcode}_d108c404_99ac3298_*.fastq.gz" ,
+        //         checkIfExists: true)
+        // } 
+        // groupTuple
+        // grouped_fastqs = fastqs.map { meta, fastq ->
+        //         meta.id, meta, fastq
+        // }
+        // .groupTuple()
+        // .map { id, meta, fastqs ->
+        //         [ meta, fastqs ]
+        // }
+        // fileDir(${params.fastqsplit},val from sample_data.csv)
 }
 
 
