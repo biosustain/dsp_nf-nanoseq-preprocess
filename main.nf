@@ -129,9 +129,7 @@ workflow{
         // mergeFiles(fastqs)
 
         // fastqs = sources.map { row -> row, 
-        // // file("az://nextflowstorage/P29_41c4786a45264966bed24c7bd386873a/DNAseq/gridion/D29_3387863281cf4b70b45dcb5d91af68c8/DNFLRS7/DNFLRS7/20230425_1450_X2_FAP81332_d108c404/fastq_pass/barcode${row.sample_barcode}/FAP81332_pass_barcode${row.sample_barcode}_d108c404_99ac3298_*.fastq.gz" ,
-        // file("/home/azureuser/blob/raw/P29_6f16f7434db544739603b3f030486642/DNAseq/gridion/D29_3387863281cf4b70b45dcb5d91af68c8/DNFLRS7/DNFLRS7/20230425_1450_X2_FAP81332_d108c404/fastq_pass/barcode${row.sample_barcode}/FAP81332_pass_barcode${row.sample_barcode}_d108c404_99ac3298_*.fastq.gz" ,
-        //         checkIfExists: true)
+   //         checkIfExists: true)
         // } 
         // groupTuple
         // grouped_fastqs = fastqs.map { meta, fastq ->
