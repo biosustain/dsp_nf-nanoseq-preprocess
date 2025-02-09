@@ -1,0 +1,4 @@
+parquetpath: "./dir/benchling/nanopore_sequencing_submission_sample.parquet"
+fasta: "az://dir/references/CP004370.1.fasta"
+gtf: "az://dir/references/CP004370.1.gtf"
+fastqsplit: "az://exp/subfoleder/fastq_pass/barcode01/SOMENAME12345_pass_barcode01_abcdabcd12_12345678_0.fastq.gz
