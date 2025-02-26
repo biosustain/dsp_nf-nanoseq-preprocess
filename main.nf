@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 
 
+// reference should be passed as a string, and file paths should be generated to be included in sample sheet.
+
+
 process getParquet{
         container 'jbjespersen/parquet:test'
         input:
@@ -12,6 +15,9 @@ process getParquet{
         parquet-tools csv --columns group,replicate,sample_barcode,nucleic_acid_type nanopore_sequencing_submission_sample.parquet > sample_data.csv
         """
 }
+
+// also get parquetpath as string in order to generate base path for other relevant files.
+
 
 
 // put barcode digits and barcode number in separate columns in temp csv file.
@@ -47,7 +53,10 @@ process fileDir{
                 // path "string.txt"
                 // tuple val(sample), path("${variable1}/${variable2}_barcode${formattedBarcode}_${variable3}_merged.fastq.gz")
                 // tuple val(sample), val(xyz), path("string.txt")
-                tuple val(sample),  env(formattedBarcode), env(barcodeFolder), env(mergedFile)
+                // tuple val(sample),  env(formattedBarcode), env(barcodeFolder), env(mergedFile)
+                // val(sample), emit: sampleInfo
+                tuple val(sample), env(formattedBarcode), env(mergedFile), emit: sampleInfo
+                env(barcodeFolder), emit: fastqDir
 
 
         script:
@@ -63,12 +72,12 @@ process fileDir{
         def formattedBarcode = String.format("%02d", sample.sample_barcode as Integer)
 
         def mergedFile = "${variable2}_barcode${formattedBarcode}_${variable3}_merged.fastq.gz"
-        def barcodeFolder = "${variable1}/fastq_pass/barcode${formattedBarcode}/*"
+        def barcodeFolder = "${variable1}/fastq_pass/barcode${formattedBarcode}"
 
 
                 """
                 formattedBarcode=${formattedBarcode}
-                barcodeFolder=${variable1}/fastq_pass/barcode${formattedBarcode}/*
+                barcodeFolder=${variable1}/fastq_pass/barcode${formattedBarcode}
                 echo "Input dir" >> string.txt
                 echo "${variable1}/fastq_pass/barcode${formattedBarcode}/" >>string.txt
                 echo "Input file" >> string.txt
@@ -81,24 +90,48 @@ process fileDir{
 
 }
 
+// need to be updated with flow cell metadata
 // variables should be passed from this process to the workflow where the glob can be used to collect 
 // all the files in each barcode directory
 
 
+//very likely we have to use the `each` connotation to flatten the input data.
 process mergeFiles{
         // here we use cat, ideally the input files are sorted based on numeric part in filename.
         container 'jbjespersen/parquet:test'
         input:
-                tuple val(sample), val(formattedBarcode),path("${barcodeFolder}"), val(mergedFile)
+                tuple val(dir), path(files)
+                // path("*.fastq.gz")
+                // tuple val(sample), val(formattedBarcode),path(barcodeFolder), val(mergedFile)
         output:
-                path "${mergedFile}"
+                // path "merged_output.fastq.gz"
+                path "merged_${dir.replaceAll('.*/', '')}.fastq.gz"
         script:
+        // cat ${files} > merged_output.fastq.gz
 
         """
-        echo "sample: ${sample.group} ${sample.replicate} ${formattedBarcode} ${sample.nucleic_acid_type}"
-        cat ${barcodeFolder}/* >> ${mergedFile}
+        cat ${files} > merged_${dir.replaceAll('.*/', '')}.fastq.gz
         """
 }
+        // #echo "sample: ${sample.group} ${sample.replicate} ${formattedBarcode} ${sample.nucleic_acid_type}"
+        // #echo "${barcodeFolder}"
+        // #echo "${mergedFile}"
+        // #cat ${barcodeFolder} >> ${mergedFile}
+
+//  need to make sure one iunstead of 7 processes are created
+process finalizeSamplesheet{
+        container 'jbjespersen/parquet:test'
+        input:
+                val all_tuples
+                // each tuple val(sample), val(formattedBarcode), val(mergedFile)
+        output:
+                path "samplesheet.csv"
+        script:
+        """
+        echo "group,replicate,barcode,input_file,fasta,gtf" > samplesheet.csv
+        ${all_tuples.collect { row -> "${row[0]}" }.join("\n")} >> samplesheet.csv
+        """
+        }
 
 
 workflow{
@@ -116,20 +149,23 @@ workflow{
 
         def pairedChannel = samples.map { sampleRow -> [sampleRow, path] }
 
-        // pairedChannel.view { println it }
-
         fileDir(pairedChannel)
-        fileDir.out.view { println it }
 
-        fastqs = fileDir.out.map{
-                // row -> row.sample.group, row.sample.replicate, row.formattedBarcode
-        }
-        fastqs.view { }
+        fastqs = fileDir.out.fastqDir
 
-        // mergeFiles(fastqs)
+        dir_files_ch = fastqs.map { dir -> tuple(dir, file("${dir}/*")) }
+        
+        mergeFiles(dir_files_ch)
 
+
+        // fileDir.out.sampleInfo.collect().subscribe {
+        //         all_tuples ->
+        //         println "collected tuples: ${all_tuples}"
+        // }
+        // finalizeSamplesheet(fastqs)
+        // finalizeSamplesheet(fileDir.out.sampleInfo.collect())
         // fastqs = sources.map { row -> row, 
-   //         checkIfExists: true)
+        //         checkIfExists: true)
         // } 
         // groupTuple
         // grouped_fastqs = fastqs.map { meta, fastq ->
@@ -141,7 +177,3 @@ workflow{
         // }
         // fileDir(${params.fastqsplit},val from sample_data.csv)
 }
-
-
-
-
