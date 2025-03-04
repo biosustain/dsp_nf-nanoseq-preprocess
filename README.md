@@ -9,9 +9,11 @@ Expected input prarams:
 
 *`parquetpath` - path tp parquet file of metadata
 
-*`fastqsplit` - path to */fastq_pass/barcodeN/file_0.fastq.gz (until we are sure paths and relative paths to the parquet file are consistent, this will be used to generate paths to all relevant fastq files)
+* `flowcell` - temporary for testing purposed will be retrieved from parquet in the future
 
 *`fasta` - path to reference fasta file
 
 *`gtf` - path to reference fasta file
+
+* `reference` - to be implemented: string which is the ID of strain, used to define URL to fasta and gtf 
 
