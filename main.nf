@@ -124,10 +124,10 @@ process collectSampleInput{
         output:
                 env (sampleLine)
         script:
-        def sampleLine = "${sample.group},${sample.replicate},,${publishDir}/${mergedFile},${fasta},${gtf}"
+        def sampleLine = "${sample.group},${sample.replicate},,${publishDir}/fastq_merged/${mergedFile},${fasta},${gtf}"
         """
 
-        sampleLine="${sample.group},${sample.replicate},,${publishDir}/${mergedFile},${fasta},${gtf}"
+        sampleLine="${sample.group},${sample.replicate},,${publishDir}/fastq_merged/${mergedFile},${fasta},${gtf}"
         """
         }
 
@@ -180,3 +180,7 @@ workflow{
         finalizeSamplesheet(sampleLines)
 
 }
+
+
+
+
