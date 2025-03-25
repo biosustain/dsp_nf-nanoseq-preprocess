@@ -1,2 +1,3 @@
 parquetpath: "./dir/benchling/nanopore_sequencing_submission_sample.parquet"
 reference: "CP004370.1"
+publishDir: "./ouput/"
