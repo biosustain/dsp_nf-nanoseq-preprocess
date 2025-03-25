@@ -141,20 +141,16 @@ process collectSampleInput{
 workflow{
         parquetFile = file(params.parquetpath)
         getParquet(parquetFile)
-
         setReferences(params.reference)
         def fasta = setReferences.out.fasta
         def gtf = setReferences.out.gtf
-
         def path = params.parquetpath
-
         def samples = getParquet.out
         .splitCsv(header: true)
         samples.view()
         def pairedChannel = samples.map { sampleRow -> [sampleRow, path] }
 
         // throw and error if the flowcell field is empty ?
-
         fileDir(pairedChannel)
         // commented out below to match all flowcell folders instead of from parquet metadata (works when empty field)
         fastqs = fileDir.out
