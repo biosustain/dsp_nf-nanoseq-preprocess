@@ -9,7 +9,6 @@ Expected input prarams:
 
 *`parquetpath` - path tp parquet file of metadata
 
-* `flowcellPos` - Flowcell Position [1-5] temporary for testing purposed will be retrieved from parquet in the future
 * `publishDir` - location to put samplesheet.csv - merged fastq files will be in a subdirectory called `fastq_merged`
 
 *`fasta` - path to reference fasta file
