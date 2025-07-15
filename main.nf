@@ -83,7 +83,8 @@ process fileDir{
  * Merge the fastq files
  * from the same barcode
  * into one file
- * to get input files in consisten order they are inputted as input/* so they get consistent order in unix
+ * to get input files in consisten order they are inputted as input
+ * so they get consistent order in unix
  */
 
 // this one could be nf-core module, the rest are more internal usage
