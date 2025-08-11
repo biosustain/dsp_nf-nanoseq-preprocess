@@ -1,7 +1,16 @@
-nextflow.enable.dsl=2
+//
+// Subworkflow to preparse input data and generate samplesheet for nf-core/nanoseq
+//
+
+include { getParquet } from '../../../modules/local/get_parquet/main.nf'
+include { setReferences } from '../../../modules/local/set_references/main.nf'
+include { fileDir } from '../../../modules/local/file_dir/main.nf'
+include { mergeFiles } from '../../../modules/local/merge_files/main.nf'
+include { collectSampleInput } from '../../../modules/local/collect_sample_input/main.nf'
 
 workflow prepare_samplesheet {
     take:
+        ch_parquet_file
         parquetpath
         reference_id
 
@@ -56,7 +65,6 @@ workflow prepare_samplesheet {
                 newLine: true
             )
             .set { samplesheet_csv }
-
     emit:
         samplesheet_csv
 }
