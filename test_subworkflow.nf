@@ -1,5 +1,5 @@
 //under development
-include { INPUT_PREPROCESSING } from '../subworkflows/local/prepare_samplesheet/main.nf'
+include { INPUT_PREPROCESSING } from './subworkflows/local/prepare_samplesheet/main.nf'
 
 workflow TEST_SUBWORKFLOW {
     
