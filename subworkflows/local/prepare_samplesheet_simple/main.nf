@@ -1,3 +1,9 @@
+include { getParquet } from '../../../modules/local/get_parquet/main.nf'
+include { setReferences } from '../../../modules/local/set_references/main.nf'
+include { fileDir } from '../../../modules/local/file_dir/main.nf'
+include { mergeFiles } from '../../../modules/local/merge_files/main.nf'
+include { collectSampleInput } from '../../../modules/local/collect_sample_input/main.nf'
+
 workflow prepare_samplesheet{
         parquetFile = file(params.parquetpath)
         getParquet(parquetFile)
