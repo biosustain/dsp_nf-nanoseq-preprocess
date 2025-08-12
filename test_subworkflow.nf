@@ -1,5 +1,5 @@
 //under development
-include { INPUT_PREPROCESSING } from './subworkflows/local/prepare_samplesheet/main.nf'
+include { prepare_samplesheet } from './subworkflows/local/prepare_samplesheet/main.nf'
 
 workflow TEST_SUBWORKFLOW {
     
@@ -13,7 +13,7 @@ workflow TEST_SUBWORKFLOW {
         params.publishDir
     )
     
-    INPUT_PREPROCESSING.out.samplesheet.view { meta, samplesheet ->
+    prepare_samplesheet.out.samplesheet.view { meta, samplesheet ->
         "Generated samplesheet: ${samplesheet}"
     }
 }
