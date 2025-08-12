@@ -12,7 +12,7 @@ workflow TEST_SUBWORKFLOW {
         params.publishDir
     )
     
-    INPUT_PREPROCESSING.out.samplesheet.view { meta, samplesheet ->
+    prepare_samplesheet.out.samplesheet.view { meta, samplesheet ->
         "Generated samplesheet: ${samplesheet}"
     }
 }

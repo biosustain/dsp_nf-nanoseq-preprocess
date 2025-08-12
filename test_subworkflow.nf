@@ -6,7 +6,7 @@ workflow TEST_SUBWORKFLOW {
     ch_parquet = Channel.fromPath(params.parquet_path)
         .map { path -> [['id': path.baseName], path] }
     
-    INPUT_PREPROCESSING(
+    prepare_samplesheet(
         ch_parquet,
         params.reference,
         params.baseRefPath,
