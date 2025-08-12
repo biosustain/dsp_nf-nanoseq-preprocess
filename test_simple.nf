@@ -1,1 +1,1 @@
-include { INPUT_PREPROCESSING } from './subworkflows/local/prepare_samplesheet_simple/main.nf'
+include { prepare_samplesheet } from './subworkflows/local/prepare_samplesheet_simple/main.nf'
